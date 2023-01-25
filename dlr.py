@@ -90,3 +90,4 @@ class DRL:
         regret_std = [np.std(cumulated_regret_DR[t]) for t in range(self.T)]
 
         return regret_mean, regret_std
+#lfdjlfdg
