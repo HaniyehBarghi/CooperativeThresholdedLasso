@@ -9,9 +9,10 @@ import math
 from scipy import sparse
 import random
 import warnings
-from ftl import FTLj
+from federatedthlassobandit import FederatedThLassoBandit
 from sal import SAL
-from drl import DRLk
+from drl import DRL
+from thlassobandit import ThLassoBandit
 
 # from sa import SA
 # from dr import DRi
@@ -40,23 +41,24 @@ for j in range(len(theta_star)):
 # Covariance Matrix Initialization
 sigma_sq = 1.
 rho_sq = 0.7
-M_0 = (sigma_sq - rho_sq) * np.eye(K) + rho_sq * np.ones((K, K))  # Covariance Matrix
+M0 = (sigma_sq - rho_sq) * np.eye(K) + rho_sq * np.ones((K, K))  # Covariance Matrix
 
 # Calculating regret [1 * T] for each algorithm: FTL(15) - TL - SA - DR
 
 # DR
-alg_drl = DRL(T, K, M_0, theta_star, sim_num)
+alg_drl = DRL(T, K, M0, theta_star, sim_num)
 DRL_mean, DRL_std = alg_drl.run_algorithm()
-
-# FTL (15)
-FTL_15 = FTL(T, K, 10, M_0, theta_star, sim_num)
+#
+# # FTL (15)
+FTL_15 = FederatedThLassoBandit(T, K, 10, M0, theta_star, sim_num)
 FTL_mean, FTL_std = FTL_15.run_algorithm()
 
 # # TL
-# alg_tl = TL
+THL = ThLassoBandit(T, K, M0, theta_star, sim_num)
+THL_mean, THL_std = THL.run_algorithm()
 #
 # SA
-alg_sal = SAL(T, K, M_0, theta_star, sim_num)
+alg_sal = SAL(T, K, M0, theta_star, sim_num)
 SAL_mean, SAL_std = alg_sal.run_algorithm()
 
 # Plotting the result
@@ -75,6 +77,11 @@ plt.fill_between(x, u, l, color='#00ebab', alpha=0.2)
 plt.plot(DRL_mean, label='DRLasso', color='#E69F00')
 u = [DRL_mean[i] + DRL_std[i] for i in range(T)]
 l = [DRL_mean[i] - DRL_std[i] for i in range(T)]
+plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
+
+plt.plot(THL_mean, label='THLasso', color='#E69F00')
+u = [THL_mean[i] + THL_std[i] for i in range(T)]
+l = [THL_mean[i] - THL_std[i] for i in range(T)]
 plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
 
 plt.xlabel('Time Horizon (T)')

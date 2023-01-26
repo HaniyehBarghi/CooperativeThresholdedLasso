@@ -1,33 +1,27 @@
-#############################################################################
-##### This code is implemented to return mean and standard deviation of #####
-##### cumulative regret per agent for alg. Federated Threshold Lasso.   #####
-#############################################################################
+##########################################################################################################
+#### This code simulates "Federated Thresholded Lasso Bandit" (Barghi, 2023) as a class. The function ####
+#### run_algorithm returns mean and standard deviation of cumulative regret of an agent.              ####
+##########################################################################################################
 
 import numpy as np
-from matplotlib import pyplot as plt
 import math
-from scipy import sparse
-import random
-import warnings
 from agent import Agent
 
 
-class FTL:
-    def __init__(self, T, K, N, M_0, theta_star, sim_num):
-        self.T = T  # Time horizon
-        self.N = N  # Number of agents
-        self.d = len(theta_star)  # Dimension
+class FederatedThLassoBandit:
+    def __init__(self, T, K, N, M0, theta_star, sim_num):
+        self.T = T      # Time horizon
+        self.K = K      # Number of arms
+        self.M0 = M0    # Initial Covariance Matrix
+        self.N = N      # Number of agents
         self.sim_num = sim_num
+        self.theta_star = theta_star
 
         # other initialization
-        c = 10  # Positive constant
-        s_A = 1  # Maximum absolute value of context-vector (component-wise)
-        self.lambda_0 = 4 * 0.05 * s_A * math.sqrt(c)
-
-        # Defining agents [sim_num * N]
-        self.agents = []
-        for i in range(self.sim_num):
-            self.agents.append([Agent(self.d, K, M_0, theta_star, 0.05) for _ in range(N)])
+        self.d = len(theta_star)  # Dimension
+        c = 10  # Positive constant according to paper
+        s_A = 1  # Maximum absolute value of context-vector (component-wise) #todo
+        self.lam0 = 4 * 0.05 * s_A * math.sqrt(c)
 
     def run_algorithm(self):
         # An array for saving all cumulative regret
@@ -36,6 +30,8 @@ class FTL:
         # Iterate each experiment
         for sim in range(self.sim_num):
             print(f'Iteration: {sim}.')
+
+            agents = [Agent(self.d, self.K, self.M0, self.theta_star, 0.05)]
             log_counter = 1
 
             # Iterate time steps
@@ -44,7 +40,7 @@ class FTL:
                     print(f'\tTime step: {t}')
 
                 # Learning the model via ridge model
-                for agent in self.agents[sim]:
+                for agent in agents:
                     agent.observe()
                     agent.pull()
                     agent.calculate_regret()
@@ -59,12 +55,12 @@ class FTL:
 
                 # Applying Lasso to update estimation of the support set
                 if Upd_SS:
-                    lambda_t = self.lambda_0 * math.sqrt(
+                    lambda_t = self.lam0 * math.sqrt(
                         (2 * math.log(t + 1) * math.log(self.d)) / (t + 1))  # Regularization-parameter
 
                     # Calculating Lasso estimator for each agent
                     lasso_estimators = []
-                    for agent in self.agents[sim]:
+                    for agent in agents:
                         lasso_estimators.append(agent.lasso(lambda_t))
 
                     # Feature extraction by union
@@ -79,14 +75,12 @@ class FTL:
                     if len(support_hat) > 0:
                         extra_dimensions = list(np.delete([i for i in range(self.d)], list(support_hat), 0))
                         # 1. and 2.
-                        for i in range(N):
-                            self.agents[sim][i].extra_dimensions = extra_dimensions
-                            self.agents[sim][i].update_ridge_parameters()
+                        for i in range(self.N):
+                            agents[i].extra_dimensions = extra_dimensions
+                            agents[i].update_ridge_parameters()
 
         regret_mean = [np.mean(cumulative_regret[t]) for t in range(self.T)]
         regret_std = [np.std(cumulative_regret[t]) for t in range(self.T)]
 
         return regret_mean, regret_std
-
-
 
