@@ -32,13 +32,13 @@ s_0 = 5  # Sparsity parameter
 s_2 = 0.3  # Minimum of absolute value of each non-zero dimension
 sim_num = 5
 
-# Defining model parameter (theta_star)
+# Defining model parameter (theta_star) #todo
 theta_star = sparse.random(d, 1, density=s_0 / d).toarray()
 for j in range(len(theta_star)):
     if theta_star[j] != 0:
         theta_star[j] = random.uniform(s_2, 1)
 
-# Covariance Matrix Initialization
+# Covariance Matrix Initialization #todo
 sigma_sq = 1.
 rho_sq = 0.7
 M0 = (sigma_sq - rho_sq) * np.eye(K) + rho_sq * np.ones((K, K))  # Covariance Matrix
@@ -79,10 +79,26 @@ u = [DRL_mean[i] + DRL_std[i] for i in range(T)]
 l = [DRL_mean[i] - DRL_std[i] for i in range(T)]
 plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
 
-plt.plot(THL_mean, label='THLasso', color='#E69F00')
+plt.plot(THL_mean, label='THLasso', color='#0072B2')
 u = [THL_mean[i] + THL_std[i] for i in range(T)]
 l = [THL_mean[i] - THL_std[i] for i in range(T)]
-plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
+plt.fill_between(x, u, l, color='#8DCEF3', alpha=0.2)
+
+plt.xlabel('Time Horizon (T)')
+plt.ylabel(f'Averaged Cumulative-Regret per agent')
+plt.title(f's_0/d: {s_0}/{d} and K: {K}')
+plt.legend()
+plt.savefig("precision.pdf", format="pdf", bbox_inches="tight")
+plt.show()
+
+
+plt.plot(FTL_mean, label='FTLasso, N=10', color='#56b4e9')
+
+plt.plot(SAL_mean, label='SALasso', color='#009E73')
+
+plt.plot(DRL_mean, label='DRLasso', color='#E69F00')
+
+plt.plot(THL_mean, label='THLasso', color='#0072B2')
 
 plt.xlabel('Time Horizon (T)')
 plt.ylabel(f'Averaged Cumulative-Regret per agent')
