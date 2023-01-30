@@ -6,7 +6,7 @@ class Agent:
     def __init__(self, K, d):
         self.K = K
         self.d = d
-        self.observed_rewards = np.array([], dtype=np.float32) # Chosen context-vectors up to time t
+        self.observed_rewards = np.array([], dtype=np.float32)  # Chosen context-vectors up to time t
         self.chosen_arms = np.array([], dtype=np.float32)  # Observed rewards up to time t
         self.theta_hat = np.zeros(d, dtype=np.float32)
         self.cumulative_regret = [0.0]
