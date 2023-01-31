@@ -27,6 +27,16 @@ class Agent:
     # 2. Update theta_hat
     def update_ridge_parameters(self):
         # 1.
+        aa = self.chosen_arms[-1]
+        aa = aa.reshape([-1, 1])
+        self.M += np.dot(aa, aa.T)
+        self.b += self.observed_rewards[-1] * aa
+        # 2.
+        self.theta_hat = np.ravel(np.matmul(np.linalg.inv(self.M), self.b))
+
+    # 1. Reduce the dimension of ridge parameters after lasso estimation. (only in log_2 t time steps)
+    def dimension_reduction_ridge_parameters(self):
+        # 1.
         aa = self.chosen_arms
         aa = list(np.delete(aa, self.extra_dimensions, 1))
         self.M = np.identity(self.d - len(self.extra_dimensions))
@@ -34,9 +44,7 @@ class Agent:
         for i in range(len(aa)):
             temp = aa[i].reshape([-1, 1])
             self.M += np.dot(temp, temp.T)
-            self.b += self.observed_rewards[i] * aa[i].reshape([-1, 1])
-        # 2.
-        self.theta_hat = np.ravel(np.matmul(np.linalg.inv(self.M), self.b))
+            self.b += self.observed_rewards[i] * temp
 
     # 1. Return lasso estimator with respect to observed data up to time step t
     def lasso(self, lambda_t):
