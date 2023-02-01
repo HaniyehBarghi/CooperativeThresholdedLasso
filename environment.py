@@ -5,22 +5,37 @@ import numpy as np
 
 
 class Environment:
-    def __init__(self, K, d, N, M0, theta_star, sigma, sA, lam0):
+    def __init__(self, d, K, N, lam0, lnr_bandits):
         self.d = d
+        self.K = K
         self.lam0 = lam0
         self.N = N
-        self.lnr_bandits = LinearBandits(d, M0, theta_star, sigma, sA)
-        self.agents = [Agent(K, d) for _ in range(N)]
+        self.lnr_bandits = lnr_bandits
+        self.agents = [Agent(self.K, self.d) for _ in range(self.N)]
+        self.log_counter = 0
+
+    def reset(self):
+        self.agents = [Agent(self.K, self.d) for _ in range(self.N)]
         self.log_counter = 0
 
     def run_step(self, t):
         if t % 200 == 0:
             print(f'\tTime step: {t}')
 
+        # print('-----------------------------')
+        # print(f'\tTime step: {t}')
+        # print(self.agents[0].chosen_arms)
+        # print(self.agents[0].observed_rewards)
+        # print(self.agents[0].theta_hat)
+        # print(self.agents[0].extra_dimensions)
+        # print(self.agents[0].M)
+        # print(self.agents[0].b)
+        # print('--------------')
+
         # Learning the model via ridge model
         for agent in self.agents:
             agent.choose_arm(self.lnr_bandits)
-            agent.update_ridge_parameters()
+            agent.update_parameters()
 
         # Specifying the mode of algorithm (Lasso or ridge)
         Upd_SS = False
@@ -40,17 +55,19 @@ class Environment:
                 lasso_estimators.append(agent.lasso(lambda_t))
 
             # Feature extraction by union
-            for dimension in lasso_estimators:
+            for estimator in lasso_estimators:
                 for j in range(self.d):
-                    if math.fabs(dimension[j]) >= lambda_t * self.N:
+                    if math.fabs(estimator[j]) > 0:
                         support_hat.add(j)
+
+            print(f'Estimated support at time {t},   {support_hat}.')
 
         # 1. Updating extra dimensions
         # 2. Updating ridge parameters
-        if len(support_hat) > 0:
-            extra_dimensions = list(np.delete(np.arange(self.d), list(support_hat)))
+        extra_dimensions = list(np.delete(np.arange(self.d), list(support_hat)))
+        if set(extra_dimensions) != set(self.agents[0].extra_dimensions):
             # 1. and 2.
             for agent in self.agents:
                 agent.extra_dimensions = extra_dimensions
-                agent.dimension_reduction_ridge_parameters()
+                agent.dimension_reduction_parameters()
 

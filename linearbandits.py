@@ -12,7 +12,7 @@ class LinearBandits:
         self.sA = sA  # Maximum infinity-norm of each context vector
         self.sigma = sigma  # The sub-gaussian parameter of noise
         self.K = len(M0)  # Number of arms
-        self.theta_star = theta_star  # Main linear parameter of the model
+        self.theta_star = theta_star  # Sparse parameter of the linear model
         self.M0 = M0
         self.context_vectors = None
 

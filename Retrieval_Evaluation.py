@@ -93,7 +93,7 @@ def multi_agent(N):
             for agent in agents[iteration]:
                 agent.observe()
                 agent.pull()
-                agent.update_ridge_parameters()
+                agent.update_parameters()
 
             # Specifying the mode of algorithm (Lasso or ridge)
             Upd_SS = False
@@ -133,7 +133,7 @@ def multi_agent(N):
                     # 1. and 2.
                     for i in range(N):
                         agents[iteration][i].extra_dimensions = extra_dimensions
-                        agents[iteration][i].update_ridge_parameters()
+                        agents[iteration][i].update_parameters()
 
             # 1. Summing up TP, FP, FN for all agents
             for i in range(N):
