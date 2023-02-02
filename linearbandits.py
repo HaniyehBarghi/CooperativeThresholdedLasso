@@ -8,7 +8,7 @@ import numpy as np
 
 class LinearBandits:
     def __init__(self, d, M0, theta_star, sigma, sA):
-        self.d = d  # Dimension of each context_vector
+        self.d = d
         self.sA = sA  # Maximum infinity-norm of each context vector
         self.sigma = sigma  # The sub-gaussian parameter of noise
         self.K = len(M0)  # Number of arms
