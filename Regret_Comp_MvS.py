@@ -11,7 +11,7 @@ import warnings
 from federatedthlassobandit import FTL
 from environment import Environment
 from linearbandits import LinearBandits
-# from sal import SAL
+from sparsityaglasso import SparsityAgLasso
 from drl import DRL
 
 # Fixing randomness!!!
@@ -22,7 +22,7 @@ np.random.seed(2)
 warnings.filterwarnings("ignore")
 
 # Defining global variables
-T = 300  # Time horizon
+T = 400  # Time horizon
 K = 10  # Number of arms
 d = 200  # Dimension
 s_0 = 5  # Sparsity parameter
@@ -45,26 +45,23 @@ M0 = (sigma_sq - rho_sq) * np.eye(K) + rho_sq * np.ones((K, K))  # Covariance Ma
 # Defining Linear Bandits
 lnr_bandits = LinearBandits(d, M0, theta_star, sigma, sA)
 
-
-# Calculating regret [1 * T] for each algorithm: FTL(15) - TL - SA - DR
+# Federated Thresholded Lasso Bandit
+print('\t\t\t\t Federated Thresholded Lasso')
 N = 10
 env = Environment(d, K, N, lnr_bandits)
-
-# FTL (15)
-FTL_15 = FTL(T, N, d, sim_num, env)
+FTL_15 = FTL(T, N, d, sim_num, sigma, env)
 FTL_mean, FTL_std = FTL_15.run_algorithm()
 
+# SA
+print('\t\t\t\t Sparsity Agnostic Lasso')
+alg_sal = SparsityAgLasso(T, d, sim_num, sigma, sA, lnr_bandits)
+SAL_mean, SAL_std = alg_sal.run_algorithm()
+
 # DR
+print('\t\t\t\t Doubly Robust Lasso')
 alg_drl = DRL(T, K, M0, theta_star, sim_num)
 DRL_mean, DRL_std = alg_drl.run_algorithm()
-#
-# # # TL
-# THL = ThLassoBandit(T, K, M0, theta_star, sim_num)
-# THL_mean, THL_std = THL.run_algorithm()
-# #
-# # SA
-# alg_sal = SAL(T, K, M0, theta_star, sim_num)
-# SAL_mean, SAL_std = alg_sal.run_algorithm()
+
 
 # Plotting the result
 x = [t for t in range(T)]
@@ -74,16 +71,16 @@ u = [FTL_mean[i] + FTL_std[i] for i in range(T)]
 l = [FTL_mean[i] - FTL_std[i] for i in range(T)]
 plt.fill_between(x, u, l, color='#9ad2f2', alpha=0.5)
 
-# plt.plot(SAL_mean, label='SALasso', color='#009E73')
-# u = [SAL_mean[i] + SAL_std[i] for i in range(T)]
-# l = [SAL_mean[i] - SAL_std[i] for i in range(T)]
-# plt.fill_between(x, u, l, color='#00ebab', alpha=0.2)
-#
+plt.plot(SAL_mean, label='SALasso', color='#009E73')
+u = [SAL_mean[i] + SAL_std[i] for i in range(T)]
+l = [SAL_mean[i] - SAL_std[i] for i in range(T)]
+plt.fill_between(x, u, l, color='#00ebab', alpha=0.2)
+
 plt.plot(DRL_mean, label='DRLasso', color='#E69F00')
 u = [DRL_mean[i] + DRL_std[i] for i in range(T)]
 l = [DRL_mean[i] - DRL_std[i] for i in range(T)]
 plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
-#
+
 # plt.plot(THL_mean, label='THLasso', color='#0072B2')
 # u = [THL_mean[i] + THL_std[i] for i in range(T)]
 # l = [THL_mean[i] - THL_std[i] for i in range(T)]

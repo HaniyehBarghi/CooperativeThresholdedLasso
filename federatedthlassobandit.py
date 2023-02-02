@@ -13,7 +13,7 @@ from agent import Agent
 
 
 class FTL:
-    def __init__(self, T, N, d, sim_num, env):
+    def __init__(self, T, N, d, sim_num, sigma, env):
         self.T = T  # Time horizon
         self.N = N  # Number of agents
         self.d = d  # Dimension
@@ -21,9 +21,9 @@ class FTL:
         self.env = env
 
         # other initialization
-        c = 10  # Positive constant
+        c = 1  # Positive constant
         s_A = 1  # Maximum absolute value of context-vector (component-wise)
-        self.env.lam0 = 4 * 0.05 * s_A * math.sqrt(c)
+        self.env.lam0 = 4 * sigma * s_A * math.sqrt(c)
 
     def run_algorithm(self):
         # An array for saving all cumulative regret

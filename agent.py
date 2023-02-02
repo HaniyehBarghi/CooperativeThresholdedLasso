@@ -62,5 +62,6 @@ class Agent:
     def lasso(self, lambda_t):
         lasso = Lasso(alpha=lambda_t)
         lasso.fit(self.chosen_arms, self.observed_rewards)
+        self.theta_hat = lasso.coef_
 
-        return lasso.coef_
+        return self.theta_hat
