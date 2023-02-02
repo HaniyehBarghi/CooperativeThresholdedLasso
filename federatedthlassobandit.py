@@ -1,35 +1,44 @@
+#############################################################################
+##### This code is implemented to return mean and standard deviation of #####
+##### cumulative regret per agent for alg. Federated Threshold Lasso.   #####
+#############################################################################
+
 import numpy as np
+from matplotlib import pyplot as plt
+import math
+from scipy import sparse
+import random
+import warnings
+from agent import Agent
 
-class FederatedThLassoBandit:
-    def __init__(self, environment, num_sim, T, K, d, N):
-        self.K = K
-        self.d = d
-        self.N = N
-        self.env = environment
-        self.num_sim = num_sim
-        self.T = T
 
-    def run(self):
+class FTL:
+    def __init__(self, T, N, d, sim_num, env):
+        self.T = T  # Time horizon
+        self.N = N  # Number of agents
+        self.d = d  # Dimension
+        self.sim_num = sim_num
+        self.env = env
+
+        # other initialization
+        c = 10  # Positive constant
+        s_A = 1  # Maximum absolute value of context-vector (component-wise)
+        self.env.lam0 = 4 * 0.05 * s_A * math.sqrt(c)
+
+    def run_algorithm(self):
         # An array for saving all cumulative regret
-        cumulative_regret = []
+        cumulative_regret = [np.zeros(self.sim_num) for _ in range(self.T)]
 
         # Iterate each simulation
-        for sim in range(self.num_sim):
-            print(f'Iteration: {sim}.')
+        for sim in range(self.sim_num):
+            print(f'Simulation: {sim}')
 
             self.env.reset()
 
             # Iterate time steps
             for t in range(self.T):
-                self.env.run_step(t)
+                cumulative_regret[t][sim] += self.env.run_step(t)
 
-            for i in range(1, self.N):
-                self.env.agents[0].cumulative_regret += self.env.agents[i].cumulative_regret
-
-            cumulative_regret.append(self.env.agents[0].cumulative_regret / self.N)
-
-        cumulative_regret = np.transpose(cumulative_regret)
-        print(np.shape(cumulative_regret))
         regret_mean = [np.mean(cumulative_regret[t]) for t in range(self.T)]
         regret_std = [np.std(cumulative_regret[t]) for t in range(self.T)]
 
