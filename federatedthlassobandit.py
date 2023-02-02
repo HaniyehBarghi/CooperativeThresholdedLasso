@@ -13,17 +13,17 @@ from agent import Agent
 
 
 class FTL:
-    def __init__(self, T, N, d, sim_num, sigma, env):
+    def __init__(self, T, N, d, sim_num, env):
         self.T = T  # Time horizon
         self.N = N  # Number of agents
         self.d = d  # Dimension
         self.sim_num = sim_num
         self.env = env
 
-        # other initialization
-        c = 1  # Positive constant
-        s_A = 1  # Maximum absolute value of context-vector (component-wise)
-        self.env.lam0 = 4 * sigma * s_A * math.sqrt(c)
+        # Defining agents [sim_num * N]
+        self.agents = []
+        for i in range(self.sim_num):
+            self.agents.append([Agent(self.d) for _ in range(N)])
 
     def run_algorithm(self):
         # An array for saving all cumulative regret
@@ -31,8 +31,7 @@ class FTL:
 
         # Iterate each simulation
         for sim in range(self.sim_num):
-            print(f'Simulation: {sim}')
-
+            print(f'Iteration: {sim}.')
             self.env.reset()
 
             # Iterate time steps
@@ -43,3 +42,6 @@ class FTL:
         regret_std = [np.std(cumulative_regret[t]) for t in range(self.T)]
 
         return regret_mean, regret_std
+
+
+

@@ -4,13 +4,13 @@ import numpy as np
 
 
 class Environment:
-    def __init__(self, d, K, N, lnr_bandits):
+    def __init__(self, d, K, N, lnr_bandits, lam0):
         self.d = d
         self.K = K
         self.N = N
+        self.lam0 = lam0
         self.lnr_bandits = lnr_bandits
 
-        self.lam0 = 1
         self.log_counter = 1
         self.agents = [Agent(self.d) for _ in range(N)]
 
@@ -20,25 +20,25 @@ class Environment:
 
     def run_step(self, t):
         if t % 200 == 0:
-            print(f'\tTime step: {t}.')
+            print(f'\tTime step: {t}')
 
-        cumulative_regret = 0
+        regret = 0.0
 
         # Learning the model via ridge model
         for agent in self.agents:
             agent.choose_arm(self.lnr_bandits)
-            cumulative_regret += agent.cumulative_regret[-1] / self.N
+            regret += agent.cumulative_regret[-1] / self.N
             agent.update_parameters()
 
         # Specifying the mode of algorithm (Lasso or ridge)
         Upd_SS = False
         if math.pow(2, self.log_counter) <= t < math.pow(2, self.log_counter + 1):
+            print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
             Upd_SS = True
             self.log_counter += 1
 
         # Applying Lasso to update estimation of the support set
         if Upd_SS:
-            # Regularization-parameter
             lambda_t = self.lam0 * math.sqrt(
                 (2 * math.log(t + 1) * math.log(self.d)) / (t + 1))  # Regularization-parameter
 
@@ -56,11 +56,11 @@ class Environment:
 
             # 1. Updating extra dimensions
             # 2. Updating ridge parameters
-            if len(support_hat) > 0:
-                extra_dimensions = list(np.delete([i for i in range(self.d)], list(support_hat), 0))
+            extra_dimensions = list(np.delete([i for i in range(self.d)], list(support_hat), 0))
+            if extra_dimensions != self.agents[0].extra_dimensions:
                 # 1. and 2.
                 for agent in self.agents:
                     agent.extra_dimensions = extra_dimensions
                     agent.dimension_reduction_parameters()
 
-        return cumulative_regret
+        return regret
