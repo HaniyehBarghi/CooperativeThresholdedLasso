@@ -64,3 +64,32 @@ class Environment:
                     agent.dimension_reduction_parameters()
 
         return regret
+    
+    def run_linucb(self,t):
+        if t % 200 == 0:
+            print(f'\tTime step: {t}')
+        
+        regret = 0
+        # Learning the model via ridge model
+        for agent in self.agents:
+            agent.choose_arm(self.lnr_bandits)
+            regret += agent.cumulative_regret[-1] / self.N
+            agent.update_parameters()
+            
+        # Specifying the mode of algorithm (Lasso or ridge)
+        Upd_SS = False
+        if math.pow(2, self.log_counter) <= t < math.pow(2, self.log_counter + 1):
+            Upd_SS = True
+            self.log_counter += 1
+        
+        if Upd_SS:
+            theta_hat_uni = np.zeros(self.agents[0].theta_hat.shape)
+            for agent in self.agents:
+                theta_hat_uni += agent.theta_hat
+                
+            theta_hat_uni = theta_hat_uni/self.N
+            for agent in self.agents:
+                agent.theta_hat = theta_hat_uni
+        
+        return regret
+

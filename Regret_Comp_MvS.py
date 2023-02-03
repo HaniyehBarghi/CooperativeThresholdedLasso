@@ -15,6 +15,7 @@ from sparsityaglasso import SparsityAgLasso
 from drl import DRL
 from environment import Environment
 from thlassobandit import ThLassoBandit
+from linucb import linucb
 
 # # Fixing randomness!!!
 # random.seed(1)
@@ -76,9 +77,10 @@ print('\t\t\t\t\t Doubly Robust Lasso')
 alg_drl = DRL(T, K, M0, theta_star, sim_num)
 DRL_mean, DRL_std = alg_drl.run_algorithm()
 
-
-
-
+# # Linucb
+print('\t\t\t\t\t LinUCB with Log Union')
+linucb = linucb(env, sim_num, T, K, d, N)
+linucb_mean, linucb_std = linucb.run()
 
 # Plotting the result
 x = [t for t in range(T)]
@@ -101,6 +103,11 @@ plt.plot(DRL_mean, label='DRLasso', color='#E69F00')
 plt.plot(THL_mean, label='THLasso', color='red')
 # u = [DRL_mean[i] + DRL_std[i] for i in range(T)]
 # l = [DRL_mean[i] - DRL_std[i] for i in range(T)]
+# plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
+
+plt.plot(linucb_mean, label='LinUCB', color='pink')
+# u = [linucb_mean[i] + linucb_std[i] for i in range(T)]
+# l = [linucb_mean[i] - linucb_std[i] for i in range(T)]
 # plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
 
 plt.xlabel('Time Horizon (T)')

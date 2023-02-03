@@ -23,6 +23,17 @@ class LinearBandits:
                                                                                                               inf_norms > self.sA][
                                                                                                           :, None]
         return self.context_vectors
+    
+    def generate_explore_context(self,sn_idx,m):
+        self.context_vectors = self.generate_context()
+        explore_context = self.context_vectors.copy()
+        for i in range(0,self.context_vectors.shape[0]):
+            for j in range(0,self.context_vectors.shape[1]):
+                if j < sn_idx*m:
+                    explore_context[i][j] = 0
+                elif j >= (sn_idx+1)*m:
+                    explore_context[i][j] = 0
+        return explore_context
 
     def pull(self, context):
         reward = np.dot(context, self.theta_star)
