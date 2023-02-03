@@ -29,8 +29,7 @@ class Environment:
         # Learning the model via ridge model
         for agent in self.agents:
             agent.choose_arm(self.lnr_bandits)
-            # regret += agent.cumulative_regret[-1] / self.N
-            regret += agent.cumulative_regret[-1]
+            regret += agent.cumulative_regret[-1] / self.N
             agent.update_parameters()
 
         # Specifying the mode of algorithm (Lasso or ridge)
