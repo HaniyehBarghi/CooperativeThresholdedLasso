@@ -4,12 +4,14 @@ import numpy as np
 
 
 class Environment:
-    def __init__(self, d, K, N, lnr_bandits, lam0):
+    def __init__(self, d, K, N, lnr_bandits, lam0, mode, par):
         self.d = d
         self.K = K
         self.N = N
         self.lam0 = lam0
         self.lnr_bandits = lnr_bandits
+        self.mode = mode
+        self.par = par
 
         self.log_counter = 1
         self.agents = [Agent(self.d) for _ in range(N)]
@@ -27,15 +29,24 @@ class Environment:
         # Learning the model via ridge model
         for agent in self.agents:
             agent.choose_arm(self.lnr_bandits)
-            regret += agent.cumulative_regret[-1] / self.N
+            # regret += agent.cumulative_regret[-1] / self.N
+            regret += agent.cumulative_regret[-1]
             agent.update_parameters()
 
         # Specifying the mode of algorithm (Lasso or ridge)
         Upd_SS = False
-        if math.pow(2, self.log_counter) <= t < math.pow(2, self.log_counter + 1):
+        if self.mode == 'log':
+            if math.pow(self.par, self.log_counter) <= t < math.pow(self.par, self.log_counter + 1):
+                print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
+                Upd_SS = True
+                self.log_counter += 1
+        elif self.mode == 'cons':
+            if t % self.par == 0:
+                print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
+                Upd_SS = True
+        else:
             print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
             Upd_SS = True
-            self.log_counter += 1
 
         # Applying Lasso to update estimation of the support set
         if Upd_SS:
@@ -51,7 +62,7 @@ class Environment:
             support_hat = set()  # A set to save non-zero dimensions
             for estimator in lasso_estimators:
                 for j in range(self.d):
-                    if math.fabs(estimator[j]) >= lambda_t * self.N:
+                    if math.fabs(estimator[j]) >= lambda_t * self.N * 0.001:
                         support_hat.add(j)
 
             # 1. Updating extra dimensions

@@ -15,7 +15,6 @@ from sparsityaglasso import SparsityAgLasso
 from drl import DRL
 from environment import Environment
 from thlassobandit import ThLassoBandit
-from linucb import linucb
 
 # # Fixing randomness!!!
 # random.seed(1)
@@ -25,14 +24,18 @@ from linucb import linucb
 warnings.filterwarnings("ignore")
 
 # Defining global variables
-T = 500  # Time horizon
+T = 200  # Time horizon
 K = 5  # Number of arms
 d = 200  # Dimension
 s_0 = 5  # Sparsity parameter
 s_2 = 0.3  # Minimum of absolute value of each non-zero dimension
-sim_num = 3
+sim_num = 5
 sigma = 0.05
-sA = 1
+N = 10
+c = 0.1  # Positive constant
+sA = 1  # Maximum absolute value of context-vector (component-wise)
+lam0 = 4 * sigma * sA * math.sqrt(c)
+
 
 # Defining model parameter (theta_star)
 theta_star = sparse.random(d, 1, density=s_0 / d).toarray()
@@ -50,69 +53,45 @@ M0 = (sigma_sq - rho_sq) * np.eye(K) + rho_sq * np.ones((K, K))  # Covariance Ma
 lnr_bandits = LinearBandits(d, M0, theta_star, sigma, sA)
 
 # FTL (15)
-print('\t\t\t\t\t Federated Thresholded Lasso')
-N = 10
-c = 1  # Positive constant
-s_A = 1  # Maximum absolute value of context-vector (component-wise)
-lam0 = 4 * sigma * s_A * math.sqrt(c)
+print('\t\t\t\t\t Federated Thresholded Lasso - Logarithmic Communication')
 env = Environment(d, K, N, lnr_bandits, lam0, 'log', 2)
-FTL_15 = FTL(T, N, d, sim_num, env)
-FTL_mean, FTL_std = FTL_15.run_algorithm()
+FTL_log2 = FTL(T, N, d, sim_num, env)
+mean_log2, std_log2 = FTL_log2.run_algorithm()
 
-# SA
-print('\t\t\t\t\t Sparsity Agnostic Lasso')
-alg_sal = SparsityAgLasso(T, d, sim_num, lnr_bandits)
-SAL_mean, SAL_std = alg_sal.run_algorithm()
+print('\t\t\t\t\t Federated Thresholded Lasso - Constant Communication')
+lam0 = 4 * sigma * sA * math.sqrt(c)
+env = Environment(d, K, N, lnr_bandits, lam0, 'cons', 20)
+FTL_cons = FTL(T, N, d, sim_num, env)
+mean_cons, std_cons = FTL_cons.run_algorithm()
 
-# THL
-print('\t\t\t\t\t Thresholded Lasso')
-c = 1  # Positive constant
-s_A = 1  # Maximum absolute value of context-vector (component-wise)
-lam0 = 4 * sigma * s_A * math.sqrt(c)
-alg_thl = ThLassoBandit(T, d, sim_num, lnr_bandits, lam0)
-THL_mean, THL_std = alg_thl.run_algorithm()
 
-# DR
-print('\t\t\t\t\t Doubly Robust Lasso')
-alg_drl = DRL(T, K, M0, theta_star, sim_num)
-DRL_mean, DRL_std = alg_drl.run_algorithm()
-
-# # Linucb
-print('\t\t\t\t\t LinUCB with Log Union')
-linucb = linucb(env, sim_num, T, K, d, N)
-linucb_mean, linucb_std = linucb.run()
+print('\t\t\t\t\t Federated Thresholded Lasso - Each step Communication')
+lam0 = 4 * sigma * sA * math.sqrt(c)
+env = Environment(d, K, N, lnr_bandits, lam0, 'each', 1)
+FTL_each = FTL(T, N, d, sim_num, env)
+mean_each, std_each = FTL_each.run_algorithm()
 
 # Plotting the result
-x = [t for t in range(T)]
 
-plt.plot(FTL_mean, label=f'FTLasso, N={N}', color='#56b4e9')
+plt.plot(mean_log2, label=f'Logarithmic Communication', color='#56b4e9')
 # u = [FTL_mean[i] + FTL_std[i] for i in range(T)]
 # l = [FTL_mean[i] - FTL_std[i] for i in range(T)]
 # plt.fill_between(x, u, l, color='#9ad2f2', alpha=0.2)
 
-plt.plot(SAL_mean, label='SALasso', color='#009E73')
+
+plt.plot(mean_cons, label='Constant delta Communication', color='#009E73')
 # u = [SAL_mean[i] + SAL_std[i] for i in range(T)]
 # l = [SAL_mean[i] - SAL_std[i] for i in range(T)]
 # plt.fill_between(x, u, l, color='#00ebab', alpha=0.2)
 
-plt.plot(DRL_mean, label='DRLasso', color='#E69F00')
+plt.plot(mean_each, label='Each step Communication', color='#E69F00')
 # u = [DRL_mean[i] + DRL_std[i] for i in range(T)]
 # l = [DRL_mean[i] - DRL_std[i] for i in range(T)]
-# plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
-
-plt.plot(THL_mean, label='THLasso', color='red')
-# u = [DRL_mean[i] + DRL_std[i] for i in range(T)]
-# l = [DRL_mean[i] - DRL_std[i] for i in range(T)]
-# plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
-
-plt.plot(linucb_mean, label='LinUCB', color='pink')
-# u = [linucb_mean[i] + linucb_std[i] for i in range(T)]
-# l = [linucb_mean[i] - linucb_std[i] for i in range(T)]
 # plt.fill_between(x, u, l, color='#ffc951', alpha=0.2)
 
 plt.xlabel('Time Horizon (T)')
 plt.ylabel(f'Averaged Cumulative-Regret per agent')
-plt.title(f's_0/d: {s_0}/{d} and K: {K}')
+plt.title(f's_0/d: {s_0}/{d}, K: {K}, and N: {N}')
 plt.legend()
 plt.savefig("precision.pdf", format="pdf", bbox_inches="tight")
 plt.show()
