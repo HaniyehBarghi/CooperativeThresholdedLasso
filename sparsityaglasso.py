@@ -13,15 +13,15 @@ from agent import Agent
 
 
 class SparsityAgLasso:
-    def __init__(self, T, d, sim_num, lnr_bandits):
+    def __init__(self, T, d, sim_num, lnr_bandits, sigma):
         self.T = T
         self.d = d
         self.sim_num = sim_num
         self.lnr_bandits = lnr_bandits
 
         # other initialization
-        x_max = 15      # upper bound on l_2 norm of every context-vector
-        self.lam0 = 2 * 0.05 * x_max
+        x_max = np.linalg.norm(lnr_bandits.generate_context()[0])   # upper bound on l_2 norm of every context-vector
+        self.lam0 = 2 * sigma * x_max
 
     def run_algorithm(self):
         # An array for saving all cumulative regret
@@ -32,7 +32,7 @@ class SparsityAgLasso:
             print(f'Iteration: {sim}.')
 
             # Defining agents
-            agent = Agent(self.d)
+            agent = Agent(self.d, [])
 
             # Iterate time steps
             for t in range(self.T):
@@ -41,7 +41,7 @@ class SparsityAgLasso:
 
                 # Choose arm
                 agent.choose_arm(self.lnr_bandits)
-                cumulative_regret[t][sim] = agent.cumulative_regret[-1]
+                cumulative_regret[t][sim] += agent.cumulative_regret[-1]
                 # Update Lasso parameter
                 lambda_t = self.lam0 * math.sqrt((4 * math.log(t + 1) + 2 * math.log(self.d)) / (t + 1))
                 agent.theta_hat = agent.lasso(lambda_t)
