@@ -26,11 +26,11 @@ class ThLassoBandit:
             print(f'Simulation: {sim}.')
 
             # Defining an agent for current simulation round
-            agent = Agent(self.d)
+            agent = Agent(self.d, [])
 
             # Iterating time steps
             for t in range(self.T):
-                if t % 100 == 0:
+                if t % 200 == 0:
                     print(f'\tTime step: {t}')
 
                 agent.choose_arm(self.lnr_bandits)
