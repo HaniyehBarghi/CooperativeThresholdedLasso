@@ -3,13 +3,14 @@ from sklearn import linear_model
 
 
 class Agent:
-    def __init__(self, d):
+    def __init__(self, d, neighbours):
         self.d = d
         self.theta_hat = np.ones(d)
         self.chosen_arms = np.empty((0, d), dtype=np.float32)
         self.observed_rewards = np.array([], dtype=np.float32)
         self.cumulative_regret = [0.0]
         self.extra_dimensions = []  # non-main dimensions at time t
+        self.neighbours = neighbours
 
         # Ridge case:
         self.M = np.identity(d)  # Ridge estimator parameter M at time t
@@ -35,7 +36,7 @@ class Agent:
         aa = np.delete(aa, self.extra_dimensions, 0)
         temp = aa.reshape([-1, 1])
         self.M += np.dot(temp, temp.T)
-        self.b += self.observed_rewards[-1] * aa.reshape([-1, 1])
+        self.b += self.observed_rewards[-1] * temp
         # 2.
         self.theta_hat = np.ravel(np.matmul(np.linalg.inv(self.M), self.b))
 
