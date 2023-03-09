@@ -4,15 +4,10 @@
 #############################################################################
 
 import numpy as np
-from matplotlib import pyplot as plt
-import math
-from scipy import sparse
-import random
-import warnings
 from agent import Agent
+import random
 
-
-class FTL:
+class CTL:
     def __init__(self, T, N, d, sim_num, env):
         self.T = T  # Time horizon
         self.N = N  # Number of agents
@@ -23,7 +18,11 @@ class FTL:
         # Defining agents [sim_num * N]
         self.agents = []
         for i in range(self.sim_num):
-            self.agents.append([Agent(self.d) for _ in range(N)])
+            if self.env.cen:
+                self.agents = [Agent(self.d, []) for _ in range(N)]
+            else:
+                neighbour_list = self.env.connected_graph(random.randint(self.N, 2 * self.N))
+                self.agents = [Agent(self.d, neighbour_list[i]) for i in range(self.N)]
 
     def run_algorithm(self):
         # An array for saving all cumulative regret
