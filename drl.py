@@ -1,11 +1,8 @@
 # Method of Kim and Paik (2019). Doubly-Robust Lasso Bandit.
 
 import numpy as np
-from scipy.stats import norm
-import matplotlib.pyplot as plt
 from sklearn import linear_model
-from scipy import sparse
-import random
+
 
 class DRAgent:
     def __init__(self, lambda_1, lambda_2, d, K, tc, tr, zt):
@@ -67,7 +64,7 @@ class DRL:
         # Defining agents [sim_num]
         self.agents = []
         for i in range(self.sim_num):
-            self.agents.append(DRAgent(lambda_1=1., lambda_2=0.5, d=self.d, K=K, tc=1, tr=True, zt=10))
+            self.agents.append(DRAgent(lambda_1=1, lambda_2=0.5, d=self.d, K=K, tc=1, tr=True, zt=10))
 
     def run_algorithm(self):
         cumulated_regret_DR = []
@@ -90,4 +87,3 @@ class DRL:
         regret_std = [np.std(cumulated_regret_DR[t]) for t in range(self.T)]
 
         return regret_mean, regret_std
-#lfdjlfdg
