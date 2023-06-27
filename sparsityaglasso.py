@@ -1,14 +1,5 @@
-#############################################################################
-##### This code is implemented to return mean and standard deviation of #####
-##### cumulative regret per agent for alg. Sparsity Agnostic Lasso.     #####
-#############################################################################
-
 import numpy as np
-from matplotlib import pyplot as plt
 import math
-from scipy import sparse
-import random
-import warnings
 from agent import Agent
 
 
@@ -21,7 +12,10 @@ class SparsityAgLasso:
 
         # other initialization
         x_max = np.linalg.norm(lnr_bandits.generate_context()[0])   # upper bound on l_2 norm of every context-vector
-        self.lam0 = 2 * sigma * x_max
+        if sigma != None:
+            self.lam0 = 2 * sigma * x_max
+        else:
+            self.lam0 = 0.01
 
     def run_algorithm(self):
         # An array for saving all cumulative regret
@@ -50,6 +44,3 @@ class SparsityAgLasso:
         regret_std = [np.std(cumulative_regret[t]) for t in range(self.T)]
 
         return regret_mean, regret_std
-
-
-
