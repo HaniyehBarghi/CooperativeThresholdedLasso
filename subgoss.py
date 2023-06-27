@@ -41,29 +41,20 @@ class subgoss:
                     for t in range(0, int(np.ceil(self.b ** j))):
                         k_set = len(self.agents[i].s_set)
                         current_t[i] += 1
-                        # print('t',current_t)
                         explore_steps = k_set * self.m * np.ceil(self.b ** (0.5 * (j - 1)))
-                        # print('explore',explore_steps)
                         explore_per_subspace = self.m * np.ceil(self.b ** (0.5 * (j - 1)))
-                        # print('explore',explore_per_subspace)
                         if t < explore_steps:
                             sn = np.floor(t / explore_per_subspace)
-                            # print(i,self.agents[i].s_set)
                             sn_idx = list(self.agents[i].s_set)[int(sn)]
-                            # print('sn_idx',sn_idx)
                             self.agents[i].explore(self.lnr_bandits, sn_idx)
                             self.agents[i].update_o()
                         else:
-                            # print('project ucb at phase',j, 'step', current_t[i])
-                            # print('theta_hat',self.agents[i].theta_hat)
-                            # pdb.set_trace()
                             self.agents[i].project_ucb(self.lnr_bandits)
 
                 for i in range(0, self.N):
                     neighbor_indicator = self.Ad_matrix[i]
                     neighbors = np.asarray(np.where(neighbor_indicator > 0))
                     neighbor_set = list(neighbors.flatten())
-                    # print('neighbors',neighbor_set)
                     ag = random.choice(neighbor_set)
                     o_ag = self.agents[ag].get_o()
                     self.agents[i].update_s_set(o_ag)
