@@ -1,11 +1,7 @@
-#############################################################################
-##### This code is implemented to return mean and standard deviation of #####
-##### cumulative regret per agent for alg. Federated Threshold Lasso.   #####
-#############################################################################
-
 import numpy as np
 from agent import Agent
 import random
+
 
 class CTL:
     def __init__(self, T, N, d, sim_num, env):
@@ -41,6 +37,3 @@ class CTL:
         regret_std = [np.std(cumulative_regret[t]) for t in range(self.T)]
 
         return regret_mean, regret_std
-
-
-
