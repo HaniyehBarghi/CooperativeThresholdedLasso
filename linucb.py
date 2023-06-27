@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb  1 13:37:49 2023
-
-@author: Xiaotong
-"""
-
 import numpy as np
 
 class linucb:
