@@ -1,8 +1,3 @@
-#################################################################################################
-###### This code simulates "Thresholded Lasso Bandit" (Ariu, 2022) as a class. The function ######
-###### run_algorithm returns mean and standard deviation of cumulative regret of an agent.  ######
-##################################################################################################
-
 import numpy as np
 import math
 from sklearn import linear_model
