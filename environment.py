@@ -6,12 +6,12 @@ import random
 
 
 class Environment:
-    def __init__(self, d, K, N, lnr_bandits, lam0, mode, par, cen):
+    def __init__(self, d, K, N, bandits, lam0, mode, par, cen):
         self.d = d
         self.K = K
         self.N = N
         self.lam0 = lam0
-        self.lnr_bandits = lnr_bandits
+        self.bandits = bandits
         self.mode = mode
         self.par = par
         self.cen = cen
@@ -30,12 +30,11 @@ class Environment:
     def run_step(self, t):
         if t % 200 == 0:
             print(f'\tTime step: {t}')
-
         regret = 0.0
 
         # Learning the model via ridge model
         for agent in self.agents:
-            agent.choose_arm(self.lnr_bandits)
+            agent.choose_arm(self.bandits)
             regret += agent.cumulative_regret[-1] / self.N
             agent.update_parameters()
 
@@ -43,15 +42,12 @@ class Environment:
         Upd_SS = False
         if self.mode == 'log':
             if math.pow(self.par, self.log_counter) <= t < math.pow(self.par, self.log_counter + 1):
-                # print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
                 Upd_SS = True
                 self.log_counter += 1
         elif self.mode == 'cons':
             if t % self.par == 0:
-                # print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
                 Upd_SS = True
         else:
-            # print(set(np.arange(self.d)) - set(self.agents[0].extra_dimensions))
             Upd_SS = True
 
         # Applying Lasso to update estimation of the support set
@@ -69,7 +65,7 @@ class Environment:
                 support_hat = set()  # A set to save non-zero dimensions
                 for estimator in lasso_estimators:
                     for j in range(self.d):
-                        if math.fabs(estimator[j]) >= lambda_t * self.N * 0.1:
+                        if math.fabs(estimator[j]) >= self.N * lambda_t * 0.01:
                             support_hat.add(j)
 
                 # 1. Updating extra dimensions
@@ -87,9 +83,9 @@ class Environment:
                     # Feature extraction by union
                     support_hat = set()  # A set to save non-zero dimensions
                     for j in range(self.d):
-                        if math.fabs(lasso_estimators[i][j]) >= lambda_t * self.N * 0.1:
+                        if math.fabs(lasso_estimators[i][j]) >= self.N * lambda_t * 0.01:
                             support_hat.add(j)
-                        if math.fabs(lasso_estimators[neighbour][j]) >= lambda_t * self.N * 0.1:
+                        if math.fabs(lasso_estimators[neighbour][j]) >= self.N * lambda_t * 0.01:
                             support_hat.add(j)
                     self.agents[i].extra_dimensions = list(np.delete([i for i in range(self.d)], list(support_hat), 0))
                     self.agents[i].dimension_reduction_parameters()
@@ -103,7 +99,7 @@ class Environment:
         regret = 0
         # Learning the model via ridge model
         for agent in self.agents:
-            agent.choose_arm(self.lnr_bandits)
+            agent.choose_arm(self.bandits)
             regret += agent.cumulative_regret[-1] / self.N
             agent.update_parameters()
 
